@@ -56,38 +56,47 @@ function fetchLast50Emails() {
     });
   }  
 
-function startImapConnection() {
-  imap.once('ready', async function () {
-    try {
-      openInbox(async (err) => {
-        if (err) throw err;
-
-        const emails = await fetchLast50Emails();
-        console.log('Fetched emails:', emails);
-
-        imap.end();
+  function startImapConnection() {
+    return new Promise((resolve, reject) => {
+      imap.once('ready', async function () {
+        try {
+          openInbox(async (err) => {
+            if (err) {
+              reject('Error opening inbox: ' + err);
+              return;
+            }
+  
+            try {
+              const emails = await fetchLast50Emails();
+  
+              resolve(emails);
+            } catch (error) {
+              reject('Error fetching emails: ' + error);
+            } finally {
+              imap.end();
+            }
+          });
+        } catch (error) {
+          reject('Error during IMAP connection setup: ' + error);
+        }
       });
-    } catch (error) {
-      console.error('Error fetching emails:', error);
-    }
-  });
-
-  imap.once('error', function (err) {
-    console.error('IMAP Connection Error:', err);
-  });
-
-  imap.once('end', function () {
-    console.log('Connection ended');
-  });
-
-  imap.connect();
-}
-
-function fetchEmailsOnStart() {
-    startImapConnection(async () => {
-      const emails = await fetchLast50Emails();
-      console.log('Fetched emails:', emails);
+  
+      imap.once('error', function (err) {
+        console.error('IMAP Connection Error:', err);
+        reject('IMAP connection failed: ' + err);
+      });
+  
+      imap.connect();
     });
   }
 
-export { fetchLast50Emails, startImapConnection, fetchEmailsOnStart };
+  async function getEmails() {
+    try {
+      const emails = await startImapConnection();
+      return emails;
+    } catch (error) {
+      console.error('Error fetching emails:', error);
+    }
+  }
+
+export { fetchLast50Emails, startImapConnection, getEmails };

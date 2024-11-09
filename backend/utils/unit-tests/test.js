@@ -1,5 +1,5 @@
-const extractLinks = require("../inspect.js");
-const assert = require("assert");
+import extractLinks from "../inspect.js";
+import assert from "assert";
 
 const html = `
 <p> Hello, welcome to our site!</p>

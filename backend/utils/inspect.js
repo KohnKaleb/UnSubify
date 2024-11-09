@@ -1,5 +1,4 @@
-const cheerio = require("cheerio");
-
+import * as cheerio from "cheerio";
 function extractLinks(htmlString, options) {
   const $ = cheerio.load(htmlString);
   const result = [];
@@ -14,5 +13,4 @@ function extractLinks(htmlString, options) {
 
   return result;
 }
-
-module.exports = extractLinks;
+export default extractLinks;

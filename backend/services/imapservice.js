@@ -8,6 +8,8 @@ function openInbox(cb) {
   imap.openBox("INBOX", true, cb);
 }
 
+const isConnected = () => imap.state === 'authenticated' || imap.state === 'ready';
+
 /**  n - number of emails to fetch,
  *   range - date range to fetch emails from,
  *   returns a promise that resolves with an array of emails
@@ -68,38 +70,45 @@ function fetchFilterEmails(n, since = null, before = null) {
 }
 
 function startImapConnection() {
-  return new Promise((resolve, reject) => {
-    imap.once("ready", async function () {
-      try {
-        openInbox(async (err) => {
-          if (err) {
-            reject("Error opening inbox: " + err);
-            return;
-          }
-
+    return new Promise((resolve, reject) => {
+      if (!isConnected()) {
+        imap.once('ready', async function () {
           try {
-            const emails = await fetchFilterEmails(50);
-
-            resolve(emails);
+            openInbox(async (err) => {
+              if (err) {
+                reject('Error opening inbox: ' + err);
+                return;
+              }
+  
+              try {
+                const emails = await fetchLast50Emails();
+                resolve(emails);
+              } catch (error) {
+                reject('Error fetching emails: ' + error);
+              } finally {
+                imap.end(); // Close the connection after fetching
+              }
+            });
           } catch (error) {
-            reject("Error fetching emails: " + error);
-          } finally {
-            imap.end();
+            reject('Error during IMAP connection setup: ' + error);
           }
         });
-      } catch (error) {
-        reject("Error during IMAP connection setup: " + error);
+    
+        imap.once('error', (err) => {
+          console.error('IMAP Connection Error:', err);
+          reject('IMAP connection failed: ' + err);
+        });
+    
+        imap.once('end', () => {
+          console.log('IMAP connection ended');
+        });
+    
+        imap.connect();
+      } else {
+        resolve('Already connected');
       }
     });
-
-    imap.once("error", function (err) {
-      console.error("IMAP Connection Error:", err);
-      reject("IMAP connection failed: " + err);
-    });
-
-    imap.connect();
-  });
-}
+  }  
 
 async function getEmails() {
   try {

@@ -10,11 +10,15 @@ function App() {
   return (
     <div className="App">
       <h1>Unsubscribe from Emails</h1>
-      <DatePicker setStartDate={setStartDate} setEndDate={setEndDate} />
+      <div style={{ margin: 25 }}>
+        <DatePicker setStartDate={setStartDate} setEndDate={setEndDate} />
+      </div>
+
       <EmailList
         maxLength={maxLength}
         startDate={startDate}
         endDate={endDate}
+        spacing={15}
       />
     </div>
   );

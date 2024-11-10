@@ -8,7 +8,7 @@ import Checkbox from "@mui/material/Checkbox";
 import Button from "@mui/material/Button";
 import RefreshIcon from "@mui/icons-material/Refresh";
 
-const EmailList = ({ maxLength, startDate, endDate }) => {
+const EmailList = ({ maxLength, startDate, endDate, spacing }) => {
   const [emails, setEmails] = useState([]);
   const [checked, setChecked] = useState([0]);
 
@@ -71,24 +71,51 @@ const EmailList = ({ maxLength, startDate, endDate }) => {
 
   return (
     <>
-      <div>
-        <Button onClick={handleSelectAll} variant="contained" color="primary">
-          Select All
-        </Button>
+      <div
+        style={{
+          marginBottom: spacing,
+        }}
+      >
+        <div style={{ margin: spacing }}>
+          <Button
+            onClick={fetchEmails}
+            variant="contained"
+            color="secondary"
+            startIcon={<RefreshIcon />}
+            style={{
+              marginLeft: spacing,
+              marginRight: spacing,
+              fontSize: spacing,
+            }}
+          >
+            Refresh
+          </Button>
+        </div>
         <Button
-          onClick={fetchEmails}
+          onClick={handleSelectAll}
           variant="contained"
-          color="secondary"
-          startIcon={<RefreshIcon />}
+          color="primary"
           style={{
-            marginLeft: "15px",
-            marginRight: "15px",
-            fontSize: "15px",
+            marginLeft: spacing,
+            marginRight: spacing,
+            fontSize: spacing,
+            width: 190,
           }}
         >
-          Refresh
+          Select All
         </Button>
-        <Button onClick={handleDeselectAll} variant="contained" color="primary">
+
+        <Button
+          onClick={handleDeselectAll}
+          variant="contained"
+          color="primary"
+          style={{
+            marginLeft: spacing,
+            marginRight: spacing,
+            fontSize: spacing,
+            width: 190,
+          }}
+        >
           Deselect All
         </Button>
       </div>

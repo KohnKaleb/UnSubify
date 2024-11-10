@@ -20,6 +20,19 @@ app.get("/emails", async (req, res) => {
   res.json(emails);
 });
 
+app.get("/unsubscribe", async (req, res) => {
+  console.log("unsubscribing emails");
+  const { list } = req.query;
+  for (let email of list) {
+    console.log("unsubscribing email", email);
+  }
+  console.log("max", max);
+  console.log("startDate", startDate);
+  console.log("endDate", endDate);
+  const emails = await getEmails(max, startDate, endDate);
+  res.json(emails);
+});
+
 const port = process.env.PORT || 3001;
 
 app.listen(port, () => {

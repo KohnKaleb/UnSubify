@@ -1,13 +1,13 @@
 import * as cheerio from "cheerio";
 const options = ["unsubscribe", "click here", "manage preferences"];
 function isSubscribed(htmlString) {
-  let rtn;
+  let rtn = "";
   const $ = cheerio.load(htmlString);
   $("a").each((index, element) => {
     const text = $(element).text().trim().toLowerCase();
     const href = $(element).attr("href");
     if (options.includes(text)) {
-      rtn = [text, href];
+      rtn = href;
       return;
     }
   });
@@ -17,10 +17,14 @@ function isSubscribed(htmlString) {
 function getSubscriptions(emails) {
   let found = 0;
   let subbed = [];
+  var hyperlink;
   for (let email of emails) {
-    if (isSubscribed(email.html)) {
+    if ((hyperlink = isSubscribed(email.html))) {
+      //adding hyperlink to json email obj
+      email.hyperlink = hyperlink;
       subbed.push(email);
-      console.log(found++);
+
+      console.log("found:", found++);
     } else {
       console.log("not found");
     }

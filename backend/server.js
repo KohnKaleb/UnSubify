@@ -1,4 +1,5 @@
 import { getEmails } from "./services/imapservice.js";
+import { processEmails } from "./services/axiosservice.js";
 import express from "express";
 import cors from "cors";
 
@@ -20,17 +21,12 @@ app.get("/emails", async (req, res) => {
   res.json(emails);
 });
 
-app.get("/unsubscribe", async (req, res) => {
+app.post("/unsubify", async (req, res) => {
   console.log("unsubscribing emails");
-  const { list } = req.query;
-  for (let email of list) {
-    console.log("unsubscribing email", email);
-  }
-  console.log("max", max);
-  console.log("startDate", startDate);
-  console.log("endDate", endDate);
-  const emails = await getEmails(max, startDate, endDate);
-  res.json(emails);
+  const { emails } = req.query;
+  const results = await processEmails(emails);
+  console.log(results);
+  res.json(results);
 });
 
 const port = process.env.PORT || 3001;

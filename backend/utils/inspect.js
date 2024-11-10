@@ -1,16 +1,30 @@
 import * as cheerio from "cheerio";
-function extractLinks(htmlString, options) {
+const options = ["unsubscribe", "click here", "manage preferences"];
+function isSubscribed(htmlString) {
+  let rtn;
   const $ = cheerio.load(htmlString);
-  const result = [];
-
   $("a").each((index, element) => {
-    const text = $(element).text().trim();
+    const text = $(element).text().trim().toLowerCase();
     const href = $(element).attr("href");
     if (options.includes(text)) {
-      result.push([text, href]);
+      rtn = [text, href];
+      return;
     }
   });
-
-  return result;
+  return rtn;
 }
-export default extractLinks;
+
+function getSubscriptions(emails) {
+  let found = 0;
+  let subbed = [];
+  for (let email of emails) {
+    if (isSubscribed(email.html)) {
+      subbed.push(email);
+      console.log(found++);
+    } else {
+      console.log("not found");
+    }
+  }
+  return subbed;
+}
+export { getSubscriptions };

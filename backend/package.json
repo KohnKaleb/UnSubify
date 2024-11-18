@@ -18,11 +18,21 @@
     "@mui/x-date-pickers": "^7.22.2",
     "axios": "^1.7.7",
     "cheerio": "^1.0.0",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
+    "express-session": "^1.18.1",
+    "google-auth-library": "^9.15.0",
+    "googleapis": "^144.0.0",
+    "ioredis": "^5.4.1",
+    "mailparser": "^3.7.1",
     "mocha": "^10.8.2",
-    "node-imap": "^0.9.6"
+    "node-imap": "^0.9.6",
+    "open": "^10.1.0",
+    "redis": "^4.7.0",
+    "redis-server": "^1.2.2",
+    "uuid": "^11.0.3"
   },
   "type": "module"
 }

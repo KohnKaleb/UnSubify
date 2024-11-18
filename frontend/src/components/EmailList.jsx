@@ -12,40 +12,44 @@ const EmailList = ({ maxLength, startDate, endDate, spacing }) => {
   const [emails, setEmails] = useState([]);
   const [checked, setChecked] = useState([0]);
 
-  const fetchEmails = async () => {
-    console.log("FETCHINGG");
-    try {
-      let queryParams = [];
+  const fetchEmails = (startDate = null, endDate = null) => {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const queryParams = [];
+        if (startDate) {
+          queryParams.push(`startDate=${null}`);
+        }
+        if (endDate) {
+          queryParams.push(`endDate=${null}`);
+        }
 
-      if (maxLength) {
-        console.log("max length", maxLength);
-        queryParams.push(`max=${maxLength}`);
-      }
-      if (startDate) {
-        console.log("start date", startDate);
-        queryParams.push(`startDate=${startDate}`);
-      }
-      if (endDate) {
-        console.log("end date", endDate);
-        queryParams.push(`endDate=${endDate}`);
-      }
+        const queryString = queryParams.length
+          ? `?${queryParams.join("&")}`
+          : "";
+        console.log("Query string:", queryString);
 
-      const queryString = queryParams.length ? `?${queryParams.join("&")}` : "";
-      console.log("query string", queryString);
-      const response = await fetch(
-        `http://localhost:3001/emails${queryString}`
-      );
-      const data = await response.json();
+        const response = await fetch(`http://localhost:3001/subs`, {
+          method: "GET",
+          credentials: "include",
+        });
 
-      setEmails(Array.isArray(data) ? data : []);
-    } catch (error) {
-      console.error("Failed to fetch emails:", error);
-    }
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        console.log("Query string:", queryString);
+        const data = await response.json();
+        setEmails(data["subscriptions"]);
+        resolve(data);
+      } catch (error) {
+        console.error("Failed to fetch emails:", error);
+      }
+    });
   };
 
-  useEffect(() => {
-    fetchEmails();
-  }, []);
+  // useEffect(() => {
+  //   fetchEmails();
+  // }, []);
 
   const handleToggle = (value) => () => {
     const currentIndex = checked.indexOf(value);
@@ -148,7 +152,7 @@ const EmailList = ({ maxLength, startDate, endDate, spacing }) => {
                         inputProps={{ "aria-labelledby": labelId }}
                       />
                     </ListItemIcon>
-                    <ListItemText id={labelId} primary={email.headers.from} />
+                    <ListItemText id={labelId} primary={email.name} />
                   </ListItemButton>
                 </ListItem>
               </>

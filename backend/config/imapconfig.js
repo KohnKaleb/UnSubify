@@ -1,5 +1,5 @@
 function genImapConfig(email, accessToken) {
-  const xoauth2String = `user=${userEmail}\x01auth=Bearer ${accessToken}\x01\x01`;
+  const xoauth2String = `user=${email}\x01auth=Bearer ${accessToken}\x01\x01`;
   const xoauth2Base64 = Buffer.from(xoauth2String).toString("base64");
   return {
     user: email,

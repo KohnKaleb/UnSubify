@@ -28,6 +28,7 @@
     "ioredis": "^5.4.1",
     "mailparser": "^3.7.1",
     "mocha": "^10.8.2",
+    "moment": "^2.30.1",
     "node-imap": "^0.9.6",
     "open": "^10.1.0",
     "redis": "^4.7.0",

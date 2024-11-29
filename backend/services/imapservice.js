@@ -1,11 +1,16 @@
 import Imap from "node-imap";
 import moment from "moment";
-async function getEmails(
-  imapConfig,
-  size = 100,
-  from = "11-18-2024",
-  to = "11-19-2024"
-) {
+function isValidDate(dateString) {
+  const dateFormat = "MM-DD-YYYY";
+  return moment(dateString, dateFormat, true).isValid();
+}
+async function getEmails(imapConfig, size = 100, from, to) {
+  if (!isValidDate(from)) {
+    from = "11-18-2000";
+  }
+  if (!isValidDate(to)) {
+    to = "11-19-2024";
+  }
   const before = to;
   const n = size;
   const since = from;

@@ -1,123 +1,134 @@
 import Imap from "node-imap";
-import { getSubscriptions } from "../utils/inspect.js";
-import { imapConfig } from "../config/imapconfig.js";
-
-const imap = new Imap(imapConfig);
-
-function openInbox(cb) {
-  imap.openBox("INBOX", true, cb);
+import moment from "moment";
+function isValidDate(dateString) {
+  const dateFormat = "MM-DD-YYYY";
+  return moment(dateString, dateFormat, true).isValid();
 }
+async function getEmails(imapConfig, size = 100, from, to) {
+  if (!isValidDate(from)) {
+    from = "11-18-2000";
+  }
+  if (!isValidDate(to)) {
+    to = "11-19-2024";
+  }
+  const before = to;
+  const n = size;
+  const since = from;
+  const imap = new Imap(imapConfig);
+  const isConnected = () =>
+    imap.state === "authenticated" || imap.state === "ready";
 
-const isConnected = () =>
-  imap.state === "authenticated" || imap.state === "ready";
+  function openInbox(cb) {
+    imap.openBox("INBOX", true, cb);
+  }
 
-/**  n - number of emails to fetch,
- *   range - date range to fetch emails from,
- *   returns a promise that resolves with an array of emails
- */
+  function fetchFilterEmails() {
+    return new Promise((resolve, reject) => {
+      let searchCriteria = ["UNANSWERED"];
+      console.log("since", moment(since).format("DD-MMM-YYYY"));
+      console.log("before", moment(before).format("DD-MMM-YYYY"));
+      if (since)
+        searchCriteria.push(["SINCE", moment(since).format("DD-MMM-YYYY")]);
+      if (before)
+        searchCriteria.push(["BEFORE", moment(before).format("DD-MMM-YYYY")]);
+      imap.search(searchCriteria, (err, results) => {
+        if (err) return reject(err);
+        console.log("Results:", results.length);
+        const filteredEmails = results.slice(-1 * size);
 
-function fetchFilterEmails(n, since = null, before = null) {
-  return new Promise((resolve, reject) => {
-    let searchCriteria = ["UNANSWERED"];
+        const fetch = imap.fetch(filteredEmails, {
+          bodies: ["HEADER.FIELDS (FROM TO SUBJECT DATE)", "TEXT"],
+          struct: true,
+        });
 
-    if (since) searchCriteria.push(["SINCE", since]);
-    if (before) searchCriteria.push(["BEFORE", before]);
-    imap.search(searchCriteria, (err, results) => {
-      if (err) return reject(err);
+        const emails = [];
 
-      const filteredEmails = results.slice(-1 * n);
+        fetch.on("message", (msg, seqno) => {
+          let emailData = {
+            html: "",
+            name: "",
+            headers: {},
+          };
 
-      const fetch = imap.fetch(filteredEmails, {
-        bodies: ["HEADER.FIELDS (FROM TO SUBJECT DATE)", "TEXT"],
-        struct: true,
-      });
+          msg.on("body", (stream, info) => {
+            let buffer = "";
+            stream.on("data", (chunk) => {
+              buffer += chunk.toString("utf8");
+            });
 
-      const emails = [];
+            stream.once("end", () => {
+              if (info.which === "HEADER.FIELDS (FROM TO SUBJECT DATE)") {
+                emailData.headers = Imap.parseHeader(buffer);
+              } else if (info.which === "TEXT") {
+                emailData.html = buffer;
+              }
 
-      fetch.on("message", (msg, seqno) => {
-        let emailData = {
-          html: "",
-          headers: {},
-        };
-
-        msg.on("body", (stream, info) => {
-          let buffer = "";
-          stream.on("data", (chunk) => {
-            buffer += chunk.toString("utf8");
+              emailData.name = emailData.from;
+            });
           });
 
-          stream.once("end", () => {
-            if (info.which === "HEADER.FIELDS (FROM TO SUBJECT DATE)") {
-              emailData.headers = Imap.parseHeader(buffer);
-            } else if (info.which === "TEXT") {
-              emailData.html = buffer;
-            }
+          msg.once("attributes", (attrs) => {
+            emailData.attributes = attrs;
+          });
+
+          msg.once("end", () => {
+            emails.push(emailData);
           });
         });
 
-        msg.once("attributes", (attrs) => {
-          emailData.attributes = attrs;
-        });
-
-        msg.once("end", () => {
-          emails.push(emailData);
-        });
+        fetch.once("error", (err) => reject(err));
+        fetch.once("end", () => resolve(emails));
       });
-
-      fetch.once("error", (err) => reject(err));
-      fetch.once("end", () => resolve(emails));
     });
-  });
-}
+  }
 
-function startImapConnection(size, from, to) {
-  return new Promise((resolve, reject) => {
-    if (!isConnected()) {
-      imap.once("ready", async function () {
-        try {
-          openInbox(async (err) => {
-            if (err) {
-              reject("Error opening inbox: " + err);
-              return;
-            }
+  function startImapConnection() {
+    return new Promise((resolve, reject) => {
+      if (!isConnected()) {
+        imap.once("ready", async function () {
+          try {
+            openInbox(async (err) => {
+              if (err) {
+                reject("Error opening inbox: " + err);
+                return;
+              }
 
-            try {
-              const emails = await fetchFilterEmails(size, from, to);
-              resolve(emails);
-            } catch (error) {
-              reject("Error fetching emails: " + error);
-            } finally {
-              imap.end(); // Close the connection after fetching
-            }
-          });
-        } catch (error) {
-          reject("Error during IMAP connection setup: " + error);
-        }
-      });
+              try {
+                const emails = await fetchFilterEmails(n, since);
+                resolve(emails);
+              } catch (error) {
+                reject("Error fetching emails: " + error);
+              } finally {
+                imap.end(); // Close the connection after fetching
+              }
+            });
+          } catch (error) {
+            reject("Error during IMAP connection setup: " + error);
+          }
+        });
 
-      imap.once("error", (err) => {
-        console.error("IMAP Connection Error:", err);
-        reject("IMAP connection failed: " + err);
-      });
+        imap.once("error", (err) => {
+          console.error("IMAP Connection Error:", err);
+          reject("IMAP connection failed: " + err);
+        });
 
-      imap.once("end", () => {
-        console.log("IMAP connection ended");
-      });
+        imap.once("end", () => {
+          console.log("IMAP connection ended");
+        });
 
-      imap.connect();
-    } else {
-      resolve("Already connected");
-    }
-  });
-}
-
-async function getEmails(size, from, to) {
+        imap.connect();
+      } else {
+        resolve("Already connected");
+      }
+    });
+  }
   try {
-    const emails = await startImapConnection(size, from, to);
+    const emails = await startImapConnection(size, since, to);
+    console.log("EV$", emails);
     return emails;
   } catch (error) {
     console.error("Error fetching emails:", error);
   }
 }
 
-export { fetchFilterEmails, startImapConnection, getEmails };
+export { getEmails };

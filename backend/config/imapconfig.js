@@ -1,11 +1,13 @@
-import dotenv from "dotenv";
+function genImapConfig(email, accessToken) {
+  const xoauth2String = `user=${email}\x01auth=Bearer ${accessToken}\x01\x01`;
+  const xoauth2Base64 = Buffer.from(xoauth2String).toString("base64");
+  return {
+    user: email,
+    xoauth2: xoauth2Base64,
+    host: "imap.gmail.com",
+    port: 993,
+    tls: true,
+  };
+}
 
-dotenv.config();
-
-export const imapConfig = {
-  user: process.env.EMAIL_USER,
-  password: process.env.EMAIL_PASSWORD,
-  host: "imap.gmail.com",
-  port: 993,
-  tls: true,
-};
+export { genImapConfig };

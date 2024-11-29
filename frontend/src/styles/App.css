@@ -1,0 +1,41 @@
+
+.container {
+  display: fixed;
+  justify-content: center;  /* Center the columns horizontally */
+  align-items: center;  /* Align columns at the top */
+  height: 100vh; /* Full height of the screen */
+}
+
+.auth-btn {
+  position: flex;
+  display: flexbox;
+}
+
+.title-header {
+  text-align: center;
+  height: 25px;
+}
+
+.pie-chart {
+  height: 100vh;
+  position: absolute;
+}
+
+.opaque-mode {
+  display: flex;
+  gap: 17px; 
+  flex-direction:column;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.opaque-mode:hover {
+  pointer-events: none;
+}
+
+.clear-mode {
+  
+  display: flex;
+  gap: 17px; 
+  flex-direction:column;
+}

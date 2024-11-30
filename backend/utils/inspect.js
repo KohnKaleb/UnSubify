@@ -21,13 +21,13 @@ function extractName(email) {
   if (email.includes("<")) {
     return email.split("<")[0].trim().replace(/"/g, "");
   }
-  return email.trim();
+  return email.trim().replace(/^['"]+|['"]+$/g, "");
 }
 
 function getSubscriptions(emails) {
   let found = 0;
-  let subscriptions = [];
-  var hyperlink;
+  let subscriptions = {};
+  let hyperlink;
   const marked = new Set();
 
   for (let email of emails) {
@@ -37,21 +37,29 @@ function getSubscriptions(emails) {
     if ((hyperlink = isSubscribed(html))) {
       found++;
       if (marked.has(name)) {
-        continue;
+        subscriptions[String(name)].value++;
+      } else {
+        marked.add(String(name));
+        subscriptions[String(name)] = {
+          name: String(name),
+          value: 1,
+          hyperLink: hyperlink,
+        };
       }
-      marked.add(name);
-      let sub = { name: name, hyperLink: hyperlink };
-      subscriptions.push(sub);
     } else {
       console.log("not found");
     }
   }
-  console.log("Subscriptions found:", subscriptions.length);
+  console.log(subscriptions);
+  let totalEmails = emails.length;
+  let totalSubs = Object.keys(subscriptions).length;
+  let other = { name: "other", value: totalEmails - totalSubs };
 
+  console.log("ENTRIES: ", Object.entries(subscriptions));
   return {
-    subscriptions: subscriptions,
-    totalSorted: emails.length,
-    totalFound: found,
+    pieChart: Object.values(subscriptions).concat(other),
+    subscriptions: Object.entries(subscriptions),
+    stats: { totalEmails: totalEmails, totalSubs: totalSubs },
   };
 }
 export { getSubscriptions };

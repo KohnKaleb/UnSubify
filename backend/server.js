@@ -123,7 +123,7 @@ app.get("/subs", async (req, res) => {
     );
     console.log("Emails fetched:", emails.length);
     const json = getSubscriptions(emails);
-    console.log("Total sub emails:", json.totalFound);
+    console.log("GG", json);
     res.json(json);
   } catch (error) {
     res.status(500).json({ error: error.message });

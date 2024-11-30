@@ -15,7 +15,7 @@ const SubscriptionList = ({ subscriptions, authentication }) => {
   const buttonClass = authentication <= 0 ? "opaque" : "App";
 
   const handleToggle = (value) => () => {
-    if (!subscriptions) return;
+    if (!subscriptions || Object.keys(subscriptions).length === 0) return;
     const currentIndex = checked.indexOf(value);
     const newChecked = [...checked];
     if (currentIndex === -1) {
@@ -27,13 +27,13 @@ const SubscriptionList = ({ subscriptions, authentication }) => {
   };
 
   const handleSelectAll = () => {
-    if (!subscriptions) return;
+    if (!subscriptions || Object.keys(subscriptions).length === 0) return;
     const allChecked = subscriptions.map((sub, index) => index);
     setChecked(allChecked);
   };
 
   const handleDeselectAll = () => {
-    if (!subscriptions) return;
+    if (!subscriptions || Object.keys(subscriptions).length === 0) return;
     setChecked([]);
   };
 
@@ -41,8 +41,9 @@ const SubscriptionList = ({ subscriptions, authentication }) => {
     setSearchQuery(event.target.value);
   };
 
+  console.log("SUBS: ", subscriptions);
   const filteredSubscriptions = subscriptions.filter((sub) =>
-    sub.name.toLowerCase().includes(searchQuery.toLowerCase())
+    sub[0].includes(searchQuery)
   );
 
   return (
@@ -68,7 +69,7 @@ const SubscriptionList = ({ subscriptions, authentication }) => {
 
         <div
           style={
-            filteredSubscriptions.length === 0
+            subscriptions.length === 0
               ? {
                   display: "flex",
                   width: "100%",
@@ -89,7 +90,7 @@ const SubscriptionList = ({ subscriptions, authentication }) => {
                 }
           }
         >
-          {filteredSubscriptions.length === 0 ? (
+          {subscriptions.length === 0 ? (
             <p>No subscriptions available</p>
           ) : (
             <List
@@ -101,7 +102,6 @@ const SubscriptionList = ({ subscriptions, authentication }) => {
             >
               {filteredSubscriptions.map((sub, index) => {
                 const labelId = `checkbox-list-label-${index}`;
-
                 return (
                   <ListItem key={index} disablePadding>
                     <ListItemButton
@@ -118,7 +118,7 @@ const SubscriptionList = ({ subscriptions, authentication }) => {
                           sx={{ p: 0 }}
                         />
                       </ListItemIcon>
-                      <ListItemText id={labelId} primary={sub.name} />
+                      <ListItemText id={labelId} primary={sub[0]} />
                     </ListItemButton>
                   </ListItem>
                 );

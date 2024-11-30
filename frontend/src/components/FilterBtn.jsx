@@ -18,10 +18,8 @@ const FilterBtn = ({ setSubscriptions, authentication, filters, setData }) => {
     console.log("Data fetched:", data);
     if (data && data.subscriptions && !data["error"]) {
       setSubscriptions(data["subscriptions"]);
-      setData([
-        { name: "Other", value: data.totalSorted - data.totalFound },
-        { name: "Subscription Emails", value: data.totalFound },
-      ]);
+      delete data["subscriptions"];
+      setData(data);
       console.log("Data set:", data);
     }
   };

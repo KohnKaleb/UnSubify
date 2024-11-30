@@ -16,7 +16,7 @@ function App() {
 
   const [authentication, setAuthentication] = useState(null);
   const [subscriptions, setSubscriptions] = useState([]);
-  const [data, setData] = useState([]);
+  const [data, setData] = useState({});
 
   function isValidAndAhead(timestampMs) {
     try {
